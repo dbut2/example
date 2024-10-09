@@ -29,4 +29,4 @@ For practical examples of how to use this package, please check the `/examples` 
 
 ## Contributing
 
-Contributions to improve the package are welcome. Please submit a pull request or create an issue to discuss proposed changes.
+For information on how to contribute to this project, please see the [CONTRIBUTING.md](CONTRIBUTING.md) file.
