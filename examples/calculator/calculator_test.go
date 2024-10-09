@@ -5,6 +5,7 @@ import (
 	"github.com/dbut2/example/examples/calculator"
 )
 
+// Play With Me
 var maxInput = `
 | Number |
 |--------|
@@ -18,12 +19,13 @@ var maxInput = `
 
 func ExampleMaximum() {
 	example.Run(calculator.Maximum, maxInput)
-	// output:
+	// Output:
 	// | Number |
 	// |--------|
 	// | 6      |
 }
 
+// Play With Me
 var calculateInput = `
 | Operand | Number |
 |---------|--------|
@@ -35,7 +37,7 @@ var calculateInput = `
 
 func ExampleCalculate() {
 	example.Run(calculator.Calculate, calculateInput)
-	// output:
+	// Output:
 	// | Result |
 	// |--------|
 	// | 10     |
