@@ -27,7 +27,13 @@ import (
 //
 // If any errors occur during parsing, processing, or function execution,
 // Run will print an error message and return without producing output.
-func Run[T, U any](f func(T) (U, error), inputTable string) {
+func Run[T, U any](f func(T) (U, error), inputTable string, opts ...RunOption) {
+	c := RunConfig{}
+
+	for _, opt := range opts {
+		opt(&c)
+	}
+
 	table := parseMarkdown(inputTable)
 
 	header := table[0]
@@ -77,8 +83,8 @@ func Run[T, U any](f func(T) (U, error), inputTable string) {
 		}
 	}
 
-	var outHeaders []string
-	{
+	outHeaders := c.outputHeaders
+	if outHeaders == nil {
 		t := reflect.TypeFor[U]()
 		if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
 			t = t.Elem()
@@ -95,22 +101,83 @@ func Run[T, U any](f func(T) (U, error), inputTable string) {
 		switch v.Kind() {
 		case reflect.Slice, reflect.Array:
 			for i := range v.Len() {
+				rv := v.Index(i)
 				var row []string
-				for j := range v.Index(i).NumField() {
-					row = append(row, fmt.Sprint(v.Index(i).Field(j).Interface()))
+				for _, header := range outHeaders {
+					f := rv.FieldByName(header)
+					if !f.IsValid() {
+						fmt.Printf("error: %v\n", fmt.Errorf("unknown field: %s", header))
+						return
+					}
+					row = append(row, fmt.Sprint(f.Interface()))
 				}
 				outTable = append(outTable, row)
 			}
 		default:
 			var row []string
-			for i := range v.NumField() {
-				row = append(row, fmt.Sprint(v.Field(i).Interface()))
+			for _, header := range outHeaders {
+				f := v.FieldByName(header)
+				if !f.IsValid() {
+					fmt.Printf("error: %v\n", fmt.Errorf("unknown field: %s", header))
+					return
+				}
+				row = append(row, fmt.Sprint(f.Interface()))
 			}
 			outTable = append(outTable, row)
 		}
 	}
 
+	revAlias := invert(c.headerAliases)
+
+	for i, h := range outTable[0] {
+		if a, ok := revAlias[h]; ok {
+			outTable[0][i] = a
+		}
+	}
+
 	fmt.Println(formatMarkdown(outTable))
+}
+
+func invert[T, U comparable](m map[T]U) map[U]T {
+	m2 := make(map[U]T, len(m))
+	for k, v := range m {
+		m2[v] = k
+	}
+	return m2
+}
+
+// RunConfig holds configuration options for the Run function.
+type RunConfig struct {
+	outputHeaders []string
+	headerAliases map[string]string
+}
+
+// RunOption is a function type used to set options for the Run function.
+type RunOption func(*RunConfig)
+
+// WithOutputHeader sets the output headers using a markdown-formatted header row.
+func WithOutputHeader(header string) RunOption {
+	return func(config *RunConfig) {
+		config.outputHeaders = parseMarkdown(header)[0]
+	}
+}
+
+// WithOutputHeaders sets the output headers using a slice of strings.
+func WithOutputHeaders(headers []string) RunOption {
+	return func(config *RunConfig) {
+		config.outputHeaders = headers
+	}
+}
+
+// WithHeaderAliases is a RunOption that sets up aliases for field names.
+// This can be useful when the table headers don't exactly match
+// the struct field names, allowing for more flexible parsing.
+// In the aliases map, each key is an alias and its corresponding
+// value is the struct field name it represents.
+func WithHeaderAliases(aliases map[string]string) RunOption {
+	return func(config *RunConfig) {
+		config.headerAliases = aliases
+	}
 }
 
 func parseRow(v reflect.Value, headers []string, row []string) error {
