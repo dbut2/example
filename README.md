@@ -2,6 +2,8 @@
 
 example is a Go package designed to bridge the gap between complex business logic or technical implementations and non-technical users. It provides a simple, user-friendly interface for interacting with and testing various functions or services using markdown-formatted tables as input and output.
 
+For examples of this package in use, visit the [examples documentation](https://pkg.go.dev/github.com/dbut2/example/examples).
+
 ## Purpose
 
 The main goal of this package is to allow users without programming experience to:
