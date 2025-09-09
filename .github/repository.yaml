@@ -1,0 +1,3 @@
+name: example
+url: "https://pkg.go.dev/github.com/dbut2/example/examples"
+description: "A Go package for bridging complex logic and non-technical users."
