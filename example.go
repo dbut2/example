@@ -194,7 +194,7 @@ func parseRow(v reflect.Value, headers []string, row []string) error {
 			}
 			field.SetFloat(v)
 		default:
-			return fmt.Errorf("unsupported type: %v\n", field.Kind())
+			return fmt.Errorf("unsupported type: %v", field.Kind())
 		}
 	}
 	return nil
